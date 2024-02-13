@@ -3,10 +3,10 @@ package tr.com
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 
-class JavaDocSymbolProcessorProvider : SymbolProcessorProvider {
+internal class SymbolProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment) =
-        JavaDocSymbolProcessor(
+        SymbolProcessor(
             environment.options,
-            environment.codeGenerator
-        )
+            environment.codeGenerator,
+            environment.logger)
 }

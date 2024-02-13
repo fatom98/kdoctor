@@ -1,11 +1,11 @@
-package api
+package api.kotlin
 
 /**
  * Some summary about class
  *
  * Detailed explanation about the class
  */
-class Kdoc {
+class Kdoc(name: String, count: Int) {
 
     /**
      * API explanation of the integer property
@@ -19,5 +19,17 @@ class Kdoc {
 
     // a comment for the developers which should be ignored by api scanner
     val stringProperty = "string"
+
+    /**
+     * Dom mapping method
+     */
+    fun toDom(string: String, int: Int) {
+        val hebele = ""
+    }
+
+    /**
+     * Second constructor
+     */
+    constructor(counts: Int) : this("", counts)
 
 }

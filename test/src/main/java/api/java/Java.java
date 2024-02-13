@@ -1,4 +1,4 @@
-package api;
+package api.java;
 
 /**
  * Some summary about class
@@ -9,10 +9,12 @@ package api;
 public class Java {
 
   /**
-   * API explanation of the property
+   * API explanation of the integer property
    */
   int integerProperty = 3;
 
-  // a comment about property for the developers which should be ignored by api scanner
+  /**
+   * API explanation of the string property
+   */
   String stringProperty = "string";
 }
