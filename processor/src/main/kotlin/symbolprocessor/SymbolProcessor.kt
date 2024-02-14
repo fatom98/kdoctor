@@ -1,11 +1,13 @@
-package tr.com
+package symbolprocessor
 
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import model.ApiModel
+import model.isInPackage
+import model.name
+import model.toClassModel
 
 internal class SymbolProcessor(
     private val options: Map<String, String>,
@@ -14,7 +16,6 @@ internal class SymbolProcessor(
 ) : SymbolProcessor {
 
     private lateinit var models: List<ApiModel>
-    private val json = Json { prettyPrint = true }
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
 
@@ -45,7 +46,7 @@ internal class SymbolProcessor(
             model.packageName,
             model.fileName,
             "json"
-        ).write(json.encodeToString(model.toJsonObject()).toByteArray())
+        ).write(model.toJsonObject().toString().toByteArray())
     }
 
 }

@@ -1,4 +1,4 @@
-package tr.com
+package model
 
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.getDeclaredProperties
@@ -28,7 +28,7 @@ internal fun KSClassDeclaration.toClassModel(): ApiModel {
 
     val enumConstants =
         if (classKind == ClassKind.ENUM_CLASS)
-            declarations.filter { it.isDocumented() }.filter { it !is KSFunctionDeclaration }
+            declarations.filter { it !is KSFunctionDeclaration }.filter { it.isDocumented() }
         else emptySequence()
 
     return ApiModel(

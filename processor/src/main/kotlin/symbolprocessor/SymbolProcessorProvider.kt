@@ -1,4 +1,4 @@
-package tr.com
+package symbolprocessor
 
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
@@ -8,5 +8,6 @@ internal class SymbolProcessorProvider : SymbolProcessorProvider {
         SymbolProcessor(
             environment.options,
             environment.codeGenerator,
-            environment.logger)
+            environment.logger
+        )
 }
