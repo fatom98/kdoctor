@@ -3,11 +3,9 @@ package symbolprocessor
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
-import com.google.devtools.ksp.symbol.KSClassDeclaration
 import model.ApiModel
+import model.createApiModel
 import model.isInPackage
-import model.name
-import model.toClassModel
 
 internal class SymbolProcessor(
     private val options: Map<String, String>,
@@ -15,38 +13,31 @@ internal class SymbolProcessor(
     private val logger: KSPLogger
 ) : SymbolProcessor {
 
-    private lateinit var models: List<ApiModel>
+    private lateinit var apiModels: Sequence<ApiModel>
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
 
         val packageToScan = options["packageToScan"].orEmpty()
         logger.info("Scanning '$packageToScan' package")
 
-        models = resolver
+        apiModels = resolver
             .getAllFiles()
-            .filter { it.packageName.isInPackage(packageToScan) }
-            .flatMap { it.declarations }
-            .filterIsInstance<KSClassDeclaration>()
-            .map {
-                logger.info("Scanning '${it.name}' file")
-                it.toClassModel()
-            }
-            .toList()
+            .filter { it.isInPackage(packageToScan) }
+            .map { it.createApiModel(logger) }
+            .flatten()
 
         return emptyList()
     }
 
-    override fun finish() {
-        models.filter { it.isDocumented }.forEach { writeToFile(it) }
-    }
+    override fun finish(): Unit = apiModels.forEach { writeToFile(it) }
 
-    private fun writeToFile(model: ApiModel) {
-        codeGenerator.createNewFile(
-            Dependencies.ALL_FILES,
-            model.packageName,
-            model.fileName,
+    private fun writeToFile(model: ApiModel): Unit = codeGenerator
+        .createNewFile(
+            Dependencies(aggregating = true, model.containingFile),
+            packageName = model.fullClassName.getQualifier(),
+            fileName = model.fullClassName.getShortName(),
             "json"
-        ).write(model.toJsonObject().toString().toByteArray())
-    }
+        )
+        .write(model.toJsonObject().toString().toByteArray())
 
 }

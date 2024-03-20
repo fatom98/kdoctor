@@ -1,41 +1,62 @@
 package model
 
-import com.google.devtools.ksp.getDeclaredFunctions
-import com.google.devtools.ksp.getDeclaredProperties
+import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
 
-internal val KSDeclaration.name: String
-    get() = qualifiedName?.asString() ?: simpleName.asString()
+internal fun KSFile.isInPackage(packageName: String): Boolean = this.packageName
+    .asString()
+    .contains(packageName)
 
-internal fun KSName.isInPackage(packageName: String): Boolean = asString().contains(packageName)
+internal fun KSFile.createApiModel(logger: KSPLogger): Sequence<ApiModel> {
 
-internal fun KSPropertyDeclaration.isDocumented(): Boolean = !docString.isNullOrEmpty()
+    logger.info("Scanning '${fullName}' file")
 
-// Catching NPE is necessary because of a bug in KSP. Doc string is lazy but never initialized for java enums.
-internal fun KSDeclaration.isDocumented(): Boolean = runCatching {
-    !docString.isNullOrEmpty()
-}.getOrElse { false }
+    val allClassDeclarations = declarations.filterIsInstance<KSClassDeclaration>()
+    return allClassDeclarations.mapNotNull { it.toApiModel() }
+}
 
-// Catching NPE is necessary because of a bug in KSP. Doc string is lazy but never initialized for java enums.
-internal fun KSFunctionDeclaration.isDocumented(): Boolean = runCatching {
-    !docString.isNullOrEmpty()
-}.getOrElse { false }
+internal fun KSClassDeclaration.toApiModel(): ApiModel? {
 
-internal fun KSClassDeclaration.toClassModel(): ApiModel {
+    val documentedProperties = getAllProperties().filter { it.isDocumented() }
+    val documentedFunctions = getAllFunctions().filter { it.isDocumented() }
+    val documentedEnumConstants = getAllDocumentedEnumConstants(declarations)
 
-    val documentedProperties = getDeclaredProperties().filter { it.isDocumented() }
-    val documentedFunctions = getDeclaredFunctions().filter { it.isDocumented() }
+    val classDocumented = !docString.isNullOrEmpty()
+            || documentedProperties.any()
+            || documentedFunctions.any()
+            || documentedEnumConstants.any()
 
-    val enumConstants =
-        if (classKind == ClassKind.ENUM_CLASS)
-            declarations.filter { it !is KSFunctionDeclaration }.filter { it.isDocumented() }
-        else emptySequence()
+    if (!classDocumented)
+        return null
+
+    val containingFile = containingFile
+    val fullClassName = qualifiedName ?: simpleName
+
+    require(containingFile != null) {
+        "File must be a source file. File name: ${fullClassName.asString()}"
+    }
 
     return ApiModel(
-        qualifiedName = qualifiedName ?: simpleName,
-        docString = docString,
-        properties = documentedProperties,
-        enumConstants = enumConstants,
-        functions = documentedFunctions
+        containingFile = containingFile,
+        fullClassName = fullClassName,
+        docString = DocString.from(docString),
+        propertyDeclarations = documentedProperties,
+        enumConstantDeclarations = documentedEnumConstants,
+        functionsDeclarations = documentedFunctions
     )
 }
+
+private val KSFile.fullName: String get() = packageName.asString() + fileName
+
+private fun KSPropertyDeclaration.isDocumented(): Boolean = !docString.isNullOrEmpty()
+
+private fun KSFunctionDeclaration.isDocumented(): Boolean = !docString.isNullOrEmpty()
+
+private fun KSDeclaration.isDocumented(): Boolean = !docString.isNullOrEmpty()
+
+private fun getAllDocumentedEnumConstants(
+    declarations: Sequence<KSDeclaration>
+): Sequence<KSClassDeclaration> = declarations
+    .filterIsInstance<KSClassDeclaration>()
+    .filter { it.classKind == ClassKind.ENUM_ENTRY }
+    .filter { it.isDocumented() }

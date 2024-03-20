@@ -1,4 +1,4 @@
-package api.kotlin
+package api.classes
 
 /**
  * Some summary about class
@@ -21,15 +21,15 @@ class Kdoc(name: String, count: Int) {
     val stringProperty = "string"
 
     /**
+     * Second constructor
+     */
+    constructor(counts: Int) : this("", counts)
+
+    /**
      * Dom mapping method
      */
     fun toDom(string: String, int: Int) {
         val hebele = ""
     }
-
-    /**
-     * Second constructor
-     */
-    constructor(counts: Int) : this("", counts)
 
 }

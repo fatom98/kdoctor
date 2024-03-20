@@ -13,6 +13,5 @@ public enum Values {
    * Value 2
    */
   VALUE2,
-  THREE
-
+  VALUE3
 }

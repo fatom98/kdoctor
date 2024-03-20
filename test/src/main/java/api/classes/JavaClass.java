@@ -1,12 +1,12 @@
-package api.java;
+package api.classes;
 
 /**
  * Some summary about class
  * <p>
  * Detailed explanation about the class
  */
-// some comment about class for the developer
-public class Java {
+// some comment about class for the developer which should be ignored since its not an api documentation
+public class JavaClass {
 
   /**
    * API explanation of the integer property

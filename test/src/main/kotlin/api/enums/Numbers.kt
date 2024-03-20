@@ -14,10 +14,6 @@ enum class Numbers {
      * Two
      */
     TWO,
-
-    /**
-     * Three
-     */
     THREE
 
 }
