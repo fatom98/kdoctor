@@ -7,11 +7,11 @@ internal fun KSFile.isInPackage(packageName: String): Boolean = this.packageName
     .asString()
     .contains(packageName)
 
-internal fun KSFile.createApiModel(logger: KSPLogger): Sequence<ApiModel> {
+internal fun KSFile.createApiModel(logger: KSPLogger): List<ApiModel> {
 
     logger.info("Scanning '${fullName}' file")
 
-    val allClassDeclarations = declarations.filterIsInstance<KSClassDeclaration>()
+    val allClassDeclarations = getAllClassDeclarations(declarations, logger=logger)
     return allClassDeclarations.mapNotNull { it.toApiModel() }
 }
 
@@ -60,3 +60,24 @@ private fun getAllDocumentedEnumConstants(
     .filterIsInstance<KSClassDeclaration>()
     .filter { it.classKind == ClassKind.ENUM_ENTRY }
     .filter { it.isDocumented() }
+
+private fun getAllClassDeclarations(
+    declarations: Sequence<KSDeclaration>,
+    allClassDeclarations: MutableList<KSClassDeclaration> = mutableListOf(),
+    logger: KSPLogger
+): List<KSClassDeclaration> {
+
+    val classDeclarations = declarations.filterIsInstance<KSClassDeclaration>()
+
+    if (classDeclarations.none())
+        return allClassDeclarations
+
+    allClassDeclarations.addAll(classDeclarations)
+
+    return getAllClassDeclarations(
+        classDeclarations.map { it.declarations }.flatten(),
+        allClassDeclarations,
+        logger
+    )
+
+}

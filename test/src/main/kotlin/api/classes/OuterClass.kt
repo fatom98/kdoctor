@@ -10,6 +10,12 @@ class OuterClass {
      */
     class NestedClass{
 
+        /**
+         * Well, I got nothing to say at this point
+         */
+        class MoreNestedClass {
+
+        }
     }
 
     /**
